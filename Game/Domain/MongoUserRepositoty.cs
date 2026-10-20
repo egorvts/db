@@ -1,5 +1,6 @@
 using System;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Game.Domain
 {
@@ -11,35 +12,53 @@ namespace Game.Domain
         public MongoUserRepository(IMongoDatabase database)
         {
             userCollection = database.GetCollection<UserEntity>(CollectionName);
+
+            userCollection.Indexes.CreateOne(new CreateIndexModel<UserEntity>(
+                Builders<UserEntity>.IndexKeys.Ascending(u => u.Login),
+                new CreateIndexOptions { Unique = true }));
         }
 
         public UserEntity Insert(UserEntity user)
         {
-            //TODO: Ищи в документации InsertXXX.
-            throw new NotImplementedException();
+            userCollection.InsertOne(user);
+
+            return user;
         }
 
         public UserEntity FindById(Guid id)
         {
-            //TODO: Ищи в документации FindXXX
-            throw new NotImplementedException();
+            var user = userCollection.Find(user => user.Id == id)
+                .FirstOrDefault();
+
+            return user;
         }
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            //TODO: Это Find или Insert
-            throw new NotImplementedException();
+            var user = userCollection.Find(u => u.Login == login).FirstOrDefault();
+            if (user != null)
+                return user;
+
+            user = new UserEntity { Login = login };
+            try
+            {
+                userCollection.InsertOne(user);
+                return user;
+            }
+            catch
+            {
+                return userCollection.Find(u => u.Login == login).First();
+            }
         }
 
         public void Update(UserEntity user)
         {
-            //TODO: Ищи в документации ReplaceXXX
-            throw new NotImplementedException();
+            userCollection.ReplaceOne(u => u.Id == user.Id, user);
         }
 
         public void Delete(Guid id)
         {
-            throw new NotImplementedException();
+            userCollection.DeleteOne(user => user.Id == id);
         }
 
         // Для вывода списка всех пользователей (упорядоченных по логину)
@@ -47,7 +66,15 @@ namespace Game.Domain
         public PageList<UserEntity> GetPage(int pageNumber, int pageSize)
         {
             //TODO: Тебе понадобятся SortBy, Skip и Limit
-            throw new NotImplementedException();
+            var users = userCollection.Find(new BsonDocument())
+                .SortBy(user => user.Login)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToList();
+
+            var totalCount = userCollection.CountDocuments(new BsonDocument());
+            
+            return new PageList<UserEntity>(users, totalCount, pageNumber, pageSize);
         }
 
         // Не нужно реализовывать этот метод

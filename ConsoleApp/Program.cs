@@ -1,18 +1,21 @@
 using System;
 using System.Linq;
 using Game.Domain;
+using Tests;
 
 namespace ConsoleApp
 {
     class Program
     {
-        private readonly IUserRepository userRepo;
+        private readonly MongoUserRepository userRepo;
         private readonly IGameRepository gameRepo;
         private readonly Random random = new Random();
 
         private Program(string[] args)
         {
-            userRepo = new InMemoryUserRepository();
+            var db = TestMongoDatabase.Create();
+            db.DropCollection(MongoUserRepository.CollectionName);
+            userRepo = new MongoUserRepository(db);
             gameRepo = new InMemoryGameRepository();
         }
 
