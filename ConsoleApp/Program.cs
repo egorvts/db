@@ -8,7 +8,8 @@ namespace ConsoleApp
     class Program
     {
         private readonly MongoUserRepository userRepo;
-        private readonly IGameRepository gameRepo;
+        private readonly MongoGameRepository gameRepo;
+        private readonly MongoGameTurnRepository gameTurnsRepo;
         private readonly Random random = new Random();
 
         private Program(string[] args)
@@ -16,7 +17,8 @@ namespace ConsoleApp
             var db = TestMongoDatabase.Create();
             db.DropCollection(MongoUserRepository.CollectionName);
             userRepo = new MongoUserRepository(db);
-            gameRepo = new InMemoryGameRepository();
+            gameRepo = new MongoGameRepository(db);
+            gameTurnsRepo = new MongoGameTurnRepository(db);
         }
 
         public static void Main(string[] args)
@@ -129,7 +131,8 @@ namespace ConsoleApp
             if (game.HaveDecisionOfEveryPlayer)
             {
                 // TODO: Сохранить информацию о прошедшем туре в IGameTurnRepository. Сформировать информацию о закончившемся туре внутри FinishTurn и вернуть её сюда.
-                game.FinishTurn();
+                var gameTurn = game.FinishTurn();
+                gameTurnsRepo.Insert(gameTurn);
             }
 
             ShowScore(game);
@@ -185,6 +188,14 @@ namespace ConsoleApp
             var players = game.Players;
             // TODO: Показать информацию про 5 последних туров: кто как ходил и кто в итоге выиграл. Прочитать эту информацию из IGameTurnRepository
             Console.WriteLine($"Score: {players[0].Name} {players[0].Score} : {players[1].Score} {players[1].Name}");
+            Console.WriteLine("Last 5 Games:");
+            var gameTurns = gameTurnsRepo.GetTurns();
+            foreach (var gameTurn in gameTurns)
+            {
+                var result = gameTurn.IsDraw ? $"Draw. Overall move: {gameTurn.WinnerDecision}" :
+                        $"The winner is {userRepo.FindById(gameTurn.WinnerId).FirstName}. The winner’s move: {gameTurn.WinnerDecision}";
+                Console.WriteLine(result);
+            }
         }
     }
 }

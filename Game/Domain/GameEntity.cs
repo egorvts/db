@@ -81,6 +81,7 @@ namespace Game.Domain
         public GameTurnEntity FinishTurn()
         {
             var winnerId = Guid.Empty;
+            var winnerDecision = Players[0].Decision;
             for (int i = 0; i < 2; i++)
             {
                 var player = Players[i];
@@ -91,10 +92,19 @@ namespace Game.Domain
                 {
                     player.Score++;
                     winnerId = player.UserId;
+                    winnerDecision = player.Decision;
                 }
             }
             //TODO Заполнить все внутри GameTurnEntity, в том числе winnerId
-            var result = new GameTurnEntity();
+            var result = new GameTurnEntity
+            {
+                WinnerId = winnerId,
+                WinnerDecision = winnerDecision,
+                TurnNumber = CurrentTurnIndex + 1,
+                FinishedAt = DateTime.UtcNow,
+                IsDraw = winnerId == Guid.Empty ? true : false
+            };
+
             // Это должно быть после создания GameTurnEntity
             foreach (var player in Players)
                 player.Decision = null;
