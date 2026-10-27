@@ -23,12 +23,12 @@ namespace Game.Domain
         /// </summary>
         [BsonElement]
         public string Name { get; }
-        
+
         /// <summary>
         /// Ход, который выбрал игрок
         /// </summary>
         public PlayerDecision? Decision { get; set; }
-        
+
         /// <summary>
         /// Текущие очки в игре. Сколько туров выиграл этот игрок.
         /// </summary>

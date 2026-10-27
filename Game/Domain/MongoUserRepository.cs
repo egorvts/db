@@ -73,7 +73,7 @@ namespace Game.Domain
                 .ToList();
 
             var totalCount = userCollection.CountDocuments(new BsonDocument());
-            
+
             return new PageList<UserEntity>(users, totalCount, pageNumber, pageSize);
         }
 

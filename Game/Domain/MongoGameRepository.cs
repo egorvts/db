@@ -11,7 +11,7 @@ namespace Game.Domain
 
         public MongoGameRepository(IMongoDatabase db)
         {
-            _collection = db.GetCollection<GameEntity>(CollectionName);   
+            _collection = db.GetCollection<GameEntity>(CollectionName);
         }
 
         public GameEntity Insert(GameEntity game)
@@ -44,7 +44,7 @@ namespace Game.Domain
             var entity = _collection.Find(x => x.Id == game.Id).FirstOrDefault();
             if (entity is not { Status: GameStatus.WaitingToStart })
                 return false;
-            
+
             var result = _collection.ReplaceOne(x => x.Id == game.Id, game);
             return result.IsAcknowledged && result.ModifiedCount == 1;
         }

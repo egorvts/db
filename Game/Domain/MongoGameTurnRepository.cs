@@ -1,13 +1,12 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Game.Domain
 {
     public class MongoGameTurnRepository : IGameTurnRepository
     {
-        public const string CollectionName = "gameTurns";
+        private const string CollectionName = "gameTurns";
         private readonly IMongoCollection<GameTurnEntity> _collection;
 
         public MongoGameTurnRepository(IMongoDatabase db)
@@ -23,7 +22,7 @@ namespace Game.Domain
                 .SortByDescending(x => x.FinishedAt)
                 .Limit(count)
                 .ToList();
-            
+
             return gameTurns;
         }
 
